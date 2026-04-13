@@ -8,16 +8,25 @@ const cors = require('cors');
 
 const app = express();
 const allowedOrigins = [
-  'http://localhost:5173', 'http://localhost:5174',
-  'http://127.0.0.1:5173', 'http://127.0.0.1:5174',
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'https://app.titusmedia.io'
+];
+
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+  origin: function (origin, callback) {
+    // allow mobile apps, postman, server-to-server
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS blocked'));
+    }
   },
-  credentials: true,
+  credentials: true
 }));
 app.use(express.json());
 
