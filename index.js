@@ -25,6 +25,8 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch(err => console.error('❌ MongoDB error:', err));
 
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/tasks',         require('./routes/tasks'));
 app.use('/api/users',         require('./routes/users'));
