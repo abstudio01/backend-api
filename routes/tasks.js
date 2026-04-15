@@ -251,6 +251,25 @@ router.get('/:id/download/:filename', auth, async (req, res) => {
   }
 });
 
+// PATCH /api/tasks/:id/cancel  (boss cancels task — keeps record)
+router.patch('/:id/cancel', auth, async (req, res) => {
+  if (req.user.role !== 'boss') return res.status(403).json({ message: 'Bosses only' });
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+    task.status       = 'cancelled';
+    task.cancelReason = req.body.reason || '';
+    task.cancelledAt  = new Date();
+    await task.save();
+    await task.populate('assignedTo', 'name email');
+    await task.populate('assignedBy', 'name');
+    await notify(task.assignedTo._id, 'cancelled', `Your task "${task.title}" was cancelled. Reason: ${task.cancelReason}`, task._id);
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // DELETE /api/tasks/:id  (boss deletes task)
 router.delete('/:id', auth, async (req, res) => {
   if (req.user.role !== 'boss') return res.status(403).json({ message: 'Bosses only' });
